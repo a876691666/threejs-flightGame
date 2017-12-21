@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<style>
+		html, body { margin: 0; width: 100%; height: 100%; overflow:hidden;}
+		canvas { width: 100%; height: 100% }
+		.cursorNone {cursor: none;}
+		#blocker {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0,0,0,0.5);
+			display: none;
+		}
+		#instructions {
+			width: 100%;
+			height: 100%;
+			display: -webkit-box;
+			display: -moz-box;
+			display: box;
+			-webkit-box-orient: horizontal;
+			-moz-box-orient: horizontal;
+			box-orient: horizontal;
+			-webkit-box-pack: center;
+			-moz-box-pack: center;
+			box-pack: center;
+			-webkit-box-align: center;
+			-moz-box-align: center;
+			box-align: center;
+			color: #ffffff;
+			text-align: center;
+			cursor: pointer;
+		}
+		.dataBox{
+			/*display: none;*/
+		}
+		#dataBox_left, #dataBox_right{
+			width:50%;
+			height:100%;
+			position: fixed;
+			text-align: center;
+			display: -webkit-box;
+			display: -moz-box;
+			display: box;
+			-webkit-box-orient: horizontal;
+			-moz-box-orient: horizontal;
+			box-orient: horizontal;
+			-webkit-box-pack: center;
+			-moz-box-pack: center;
+			box-pack: center;
+			-webkit-box-align: center;
+			-moz-box-align: center;
+			box-align: center;
+		}
+		#dataBox_left{
+			left:0;
+		}
+		#dataBox_right{
+			left:50%;
+		}
+	</style>
+	<title>石头Web -有趣儿的代码 -</title>
+</head>
+<body>
+<div class="dataBox">
+</div>
+<script src="OnKeys.js"></script>
+	<script src="three.js"></script>
+
+
+	<script>
+	var PI_180 = Math.PI / 180;
+	var scene, camera, renderer, effect, element, controls, personBox;
+
+
+	var keyList = {'q':false, 'e':false, 'w':false, 'a':false, 's':false, 'd':false, 'up':false, 'down':false, 'left':false, 'right':false };
+	(function(){
+		var ok = new OK();
+		ok.on('q.down', function(){
+			keyList.q = true;
+		}).on('q.up', function(){
+			keyList.q = false;
+		}).on('e.down', function(){
+			keyList.e = true;
+		}).on('e.up', function(){
+			keyList.e = false;
+		}).on('w.down', function(){
+			keyList.w = true;
+		}).on('w.up', function(){
+			keyList.w = false;
+		}).on('a.down', function(){
+			keyList.a = true;
+		}).on('a.up', function(){
+			keyList.a = false;
+		}).on('s.down', function(){
+			keyList.s = true;
+		}).on('s.up', function(){
+			keyList.s = false;
+		}).on('d.down', function(){
+			keyList.d = true;
+		}).on('d.up', function(){
+			keyList.d = false;
+		}).on('up.down', function(){
+			keyList.up = true;
+		}).on('up.up', function(){
+			keyList.up = false;
+		}).on('down.down', function(){
+			keyList.down = true;
+		}).on('down.up', function(){
+			keyList.down = false;
+		}).on('left.down', function(){
+			keyList.left = true;
+		}).on('left.up', function(){
+			keyList.left = false;
+		}).on('right.down', function(){
+			keyList.right = true;
+		}).on('right.up', function(){
+			keyList.right = false;
+		});
+	})();
+
+
+	var cube2;
+	var personrotateX = new THREE.Object3D();
+	init();
+
+	function consoleData(str){
+		dataBox_left.innerHTML =  dataBox_right.innerHTML = str;
+	}
+
+	function init(){
+		scene = new THREE.Scene();
+		camera = new THREE.PerspectiveCamera( 120, (window.innerWidth) / window.innerHeight, 0.1, 5000 );
+		camera.rotateY(180*PI_180)
+
+		personBox = new THREE.Object3D();
+		scene.add(personBox);
+
+		var geometry = new THREE.BoxGeometry( 30,30,30 );
+		var material = new THREE.MeshLambertMaterial( { color: 0xff0000 } );
+		cube2 = new THREE.Mesh( geometry, material );
+		cube2.castShadow = true;
+		cube2.position.y = 530;
+		cube2.position.z = 50;
+		scene.add( cube2 );
+
+		var person = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 20), new THREE.MeshLambertMaterial({color:0x0000ff}));
+		person.position.y = -5;
+		var person2 = new THREE.Mesh(new THREE.BoxGeometry(5, 1, 1), new THREE.MeshLambertMaterial({color:0x0000ff}));
+		person2.position.set(0, -5, 10);
+
+		personrotateX.add(person);
+		personrotateX.add(person2);
+
+		personrotateX.add(camera);
+		personBox.add(personrotateX);
+		personBox.position.y = 510;
+
+		renderer = new THREE.WebGLRenderer();
+		renderer.shadowMapEnabled = true;
+		element = renderer.domElement;
+		document.body.appendChild( renderer.domElement );
+
+
+	    animate();
+	}
+
+	function animate() {
+	    requestAnimationFrame(animate);
+
+	    var width = window.innerWidth;
+	    var height = window.innerHeight;
+
+	    camera.aspect = width / height;
+	    camera.updateProjectionMatrix();
+
+	    renderer.setSize(width, height);
+
+	    camera.updateProjectionMatrix();
+	    renderer.render(scene, camera)
+
+	    updateBox()
+	}
+
+
+
+    var planeGeometry = new THREE.PlaneGeometry(6000, 6000);
+    var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+    var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.receiveShadow = true;
+    plane.rotateX(-0.5*Math.PI);
+    // add the plane to the scene
+    scene.add(plane);
+
+
+	var geometry = new THREE.BoxGeometry( 500,500,500 );
+	var material = new THREE.MeshLambertMaterial( { color: 0xff0000 } );
+	var cube = new THREE.Mesh( geometry, material );
+	cube.castShadow = true;
+	cube.position.y = 250;
+	scene.add( cube );
+
+
+    // add spotlight for the shadows
+    var DirectionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    DirectionalLight.position.set(0, 1000, 0);
+    DirectionalLight.castShadow = true;
+    scene.add(DirectionalLight);        
+
+    var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(500, 500, 500);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+
+
+	function _animate() {
+		if ( moveForward ) cube.position.z += (4*(shift?2:1));
+		if ( moveBackward ) cube.position.z -= (4*(shift?2:1));
+		if ( moveLeft ) cube.position.x -= (4*(shift?2:1));
+		if ( moveRight ) cube.position.x += (4*(shift?2:1));
+
+		if(yawObject.position.y > 10) {
+			yawObject.position.y -= 3
+			if(yawObject.position.y < 10) yawObject.position.y = 10
+		}
+	}
+
+	function updateBox() {
+
+		var yAngle = personBox.rotation.y/PI_180;
+		var xAngle = personBox.rotation.x/PI_180;
+		if ( keyList.w ) personMove( personBox, 4*(keyList.shift?2:1), xAngle ? xAngle - yAngle : yAngle , 'w');
+		if ( keyList.a ) personMove( personBox, 4*(keyList.shift?2:1), xAngle ? xAngle - yAngle : yAngle , 'a');
+		if ( keyList.s ) personMove( personBox, 4*(keyList.shift?2:1), xAngle ? xAngle - yAngle : yAngle , 's');
+		if ( keyList.d ) personMove( personBox, 4*(keyList.shift?2:1), xAngle ? xAngle - yAngle : yAngle , 'd');
+
+		// console.log('y:'+Math.round(personBox.rotation.y/PI_180)+' x:'+Math.round(personBox.rotation.x/PI_180)+' z:'+Math.round(personBox.rotation.z/PI_180))
+		if ( keyList.r ) cube2.rotateX(-PI_180);
+		if ( keyList.f ) cube2.rotateX(PI_180);
+
+		if ( keyList.q ) personBox.rotateY(PI_180);
+		if ( keyList.e ) personBox.rotateY(-PI_180);
+
+		if ( keyList.z ) cube2.rotateZ(PI_180);
+		if ( keyList.c ) cube2.rotateZ(-PI_180);
+
+		// consoleData(personBox.rotation.y/PI_180+'     '+personBox.rotation.y);
+		// consoleData('y:'+Math.round(cube2.rotation.y/PI_180)+' x:'+Math.round(cube2.rotation.x/PI_180)+' z:'+Math.round(cube2.rotation.z/PI_180));
+	};
+
+	function personMove(personObj, distance, angle, key){
+		var position = moves[key](personObj, distance, angle);
+		// consoleData('z:'+position.z+' x:'+position.x+ '    第'+position.xx+'象限');
+		personObj.position.x += position.x;
+		personObj.position.z += position.z;
+	}
+	var moves = {
+		w: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+
+			if(xx == 1) zb = Math.cos(angle*PI_180)*distance, xb = Math.sin(angle*PI_180)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*PI_180)*distance, xb = Math.sin((180-angle)*PI_180)*distance
+			if(xx == 3) xb = -Math.abs(Math.cos((270-angle)*PI_180)*distance), zb = -Math.sin((270-angle)*PI_180)*distance
+			if(xx == 4) zb = Math.abs(Math.cos((360-angle)*PI_180)*distance), xb = -Math.sin((360-angle)*PI_180)*distance
+
+			return {x:xb, z:zb, xx:xx}
+		},
+		a: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+			angle+=90;
+
+			if(xx == 1) zb = Math.cos(angle*PI_180)*distance, xb = Math.sin(angle*PI_180)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*PI_180)*distance, xb = Math.sin((180-angle)*PI_180)*distance
+			if(xx == 3) xb = -Math.abs(Math.cos((270-angle)*PI_180)*distance), zb = -Math.sin((270-angle)*PI_180)*distance
+			if(xx == 4) zb = Math.abs(Math.cos((360-angle)*PI_180)*distance), xb = -Math.sin((360-angle)*PI_180)*distance
+			
+			return {x:xb, z:zb, xx:xx}
+		},
+		s: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+			angle+=180;
+
+			if(xx == 1) zb = Math.cos(angle*PI_180)*distance, xb = Math.sin(angle*PI_180)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*PI_180)*distance, xb = Math.sin((180-angle)*PI_180)*distance
+			if(xx == 3) xb = Math.abs(Math.cos((270-angle)*PI_180)*distance), zb = -Math.sin((270-angle)*PI_180)*distance
+			if(xx == 4) zb = -Math.abs(Math.cos((360-angle)*PI_180)*distance), xb = -Math.sin((360-angle)*PI_180)*distance
+			
+			return {x:xb, z:zb, xx:xx}
+		},
+		d: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+			angle+=270;
+
+			if(xx == 1) zb = Math.cos(angle*PI_180)*distance, xb = Math.sin(angle*PI_180)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*PI_180)*distance, xb = Math.sin((180-angle)*PI_180)*distance
+			if(xx == 3) xb = Math.abs(Math.cos((270-angle)*PI_180)*distance), zb = -Math.sin((270-angle)*PI_180)*distance
+			if(xx == 4) zb = -Math.abs(Math.cos((360-angle)*PI_180)*distance), xb = -Math.sin((360-angle)*PI_180)*distance
+			
+			return {x:xb, z:zb, xx:xx}
+		}
+	}
+	
+
+	function getXX (angle){
+		if((angle>=0 && angle<90) || (angle<-270 && angle >= -360))return 1;
+		if((angle>=90 && angle<180) || (angle<-180 && angle >= -270))return 2;
+		if((angle>=180 && angle <270) || (angle<-90 && angle >= -180))return 3;
+		if((angle>=270 && angle <360) || (angle<0 && angle >= -90))return 4;
+	}
+
+
+
+	window.addEventListener( 'resize', onWindowResize, false );
+
+	function onWindowResize() {
+		camera.aspect = (window.innerWidth/2) / window.innerHeight;
+		camera.updateProjectionMatrix();
+	}
+
+	</script>
+</body>
+</html>

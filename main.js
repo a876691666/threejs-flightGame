@@ -17,6 +17,20 @@ mesh.position.set( 0, 0, 0 );
 mesh.receiveShadow = true;
 scene.add( mesh );
 
+var material = new THREE.MeshPhongMaterial( { color: 0x808080, dithering: true } );
+var geometry = new THREE.BoxGeometry( 200, 20, 20 );
+var mesh = new THREE.Mesh( geometry, material );
+mesh.position.set( 0, 0, 0 );
+mesh.receiveShadow = true;
+scene.add( mesh );
+
+var material = new THREE.MeshPhongMaterial( { color: 0x808080, dithering: true } );
+var geometry = new THREE.BoxGeometry( 20, 200, 20 );
+var mesh = new THREE.Mesh( geometry, material );
+mesh.position.set( 0, 0, 0 );
+mesh.receiveShadow = true;
+scene.add( mesh );
+
 var group = new THREE.Object3D();
 
 var geometry = new THREE.BoxGeometry(50, 50, 50);
@@ -111,28 +125,91 @@ var keyList = {'q':false, 'e':false, 'w':false, 'a':false, 's':false, 'd':false,
 		keyList.right = true;
 	}).on('right.up', function(){
 		keyList.right = false;
-	});
+	})
 	setInterval(function() {
-		if(keyList.w){
-			group.position.x+=1;
-		}
-		if(keyList.s){
-			group.position.x-=1;
-		}
-		if(keyList.a){
-			group.position.y+=1;
-		}
-		if(keyList.d){
-			group.position.y-=1;
-		}
+		var yAngle = cube.rotation.z/_angle;
+		var xAngle = cube.rotation.z/_angle;
+		// console.log(yAngle)
+		if ( keyList.w ) personMove( group, 10, yAngle , 'w');
+		if ( keyList.a ) personMove( group, 10, yAngle , 'a');
+		if ( keyList.s ) personMove( group, 10, yAngle , 's');
+		if ( keyList.d ) personMove( group, 10, yAngle , 'd');
 		if(keyList.q){
-			cube.rotateZ(1*_angle);
+			cube.rotateZ(3*_angle);
 		}
 		if(keyList.e){
-			cube.rotateZ(-1*_angle);
+			cube.rotateZ(-3*_angle);
 		}
 	}, 1000/ 60)
 })();
+
+	function personMove(personObj, distance, angle, key){
+		var position = moves[key](personObj, distance, angle);
+		// consoleData('z:'+position.z+' x:'+position.x+ '    第'+position.xx+'象限');
+		personObj.position.x += position.z.toFixed()-0;
+		personObj.position.y += position.x.toFixed()-0;
+	}
+	var moves = {
+		w: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+
+			if(xx == 1) zb = Math.cos(angle*_angle)*distance, xb = Math.sin(angle*_angle)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*_angle)*distance, xb = Math.sin((180-angle)*_angle)*distance
+			if(xx == 3) xb = -Math.abs(Math.cos((270-angle)*_angle)*distance), zb = -Math.sin((270-angle)*_angle)*distance
+			if(xx == 4) zb = Math.abs(Math.cos((360-angle)*_angle)*distance), xb = -Math.sin((360-angle)*_angle)*distance
+
+			return {x:xb, z:zb, xx:xx}
+		},
+		a: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+			angle+=90;
+
+			if(xx == 1) zb = Math.cos(angle*_angle)*distance, xb = Math.sin(angle*_angle)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*_angle)*distance, xb = Math.sin((180-angle)*_angle)*distance
+			if(xx == 3) xb = -Math.abs(Math.cos((270-angle)*_angle)*distance), zb = -Math.sin((270-angle)*_angle)*distance
+			if(xx == 4) zb = Math.abs(Math.cos((360-angle)*_angle)*distance), xb = -Math.sin((360-angle)*_angle)*distance
+
+			return {x:xb, z:zb, xx:xx}
+		},
+		s: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+			angle+=180;
+
+			if(xx == 1) zb = Math.cos(angle*_angle)*distance, xb = Math.sin(angle*_angle)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*_angle)*distance, xb = Math.sin((180-angle)*_angle)*distance
+			if(xx == 3) xb = Math.abs(Math.cos((270-angle)*_angle)*distance), zb = -Math.sin((270-angle)*_angle)*distance
+			if(xx == 4) zb = -Math.abs(Math.cos((360-angle)*_angle)*distance), xb = -Math.sin((360-angle)*_angle)*distance
+
+			return {x:xb, z:zb, xx:xx}
+		},
+		d: function(personObj, distance, angle){
+			angle %= 360;
+			var xb, zb;
+			var xx = getXX(angle);
+			angle+=270;
+
+			if(xx == 1) zb = Math.cos(angle*_angle)*distance, xb = Math.sin(angle*_angle)*distance
+			if(xx == 2) zb = -Math.cos((180-angle)*_angle)*distance, xb = Math.sin((180-angle)*_angle)*distance
+			if(xx == 3) xb = Math.abs(Math.cos((270-angle)*_angle)*distance), zb = -Math.sin((270-angle)*_angle)*distance
+			if(xx == 4) zb = -Math.abs(Math.cos((360-angle)*_angle)*distance), xb = -Math.sin((360-angle)*_angle)*distance
+
+			return {x:xb, z:zb, xx:xx}
+		}
+	}
+
+
+	function getXX (angle){
+		if((angle>=0 && angle<90) || (angle<-270 && angle >= -360))return 1;
+		if((angle>=90 && angle<180) || (angle<-180 && angle >= -270))return 2;
+		if((angle>=180 && angle <270) || (angle<-90 && angle >= -180))return 3;
+		if((angle>=270 && angle <360) || (angle<0 && angle >= -90))return 4;
+	}
 
 
 
